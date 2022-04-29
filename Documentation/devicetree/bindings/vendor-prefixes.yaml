@@ -109,6 +109,8 @@ patternProperties:
     description: ARM Ltd.
   "^armadeus,.*":
     description: ARMadeus Systems SARL
+  "^armchina,.*":
+    description: ARM China Ltd.
   "^arrow,.*":
     description: Arrow Electronics
   "^artesyn,.*":
@@ -1232,6 +1234,8 @@ patternProperties:
     description: Zinitix Co., Ltd
   "^zkmagic,.*":
     description: Shenzhen Zkmagic Technology Co., Ltd.
+  "^zsx,.*":
+    description: Shenzhen Zhishengxin Technology Co., Ltd.
   "^zte,.*":
     description: ZTE Corp.
   "^zyxel,.*":

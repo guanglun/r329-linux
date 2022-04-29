@@ -20,6 +20,7 @@ properties:
       - allwinner,sun50i-a100-ths
       - allwinner,sun50i-h5-ths
       - allwinner,sun50i-h6-ths
+      - allwinner,sun50i-r329-ths
 
   clocks:
     minItems: 1
@@ -65,6 +66,7 @@ allOf:
             enum:
               - allwinner,sun50i-a100-ths
               - allwinner,sun50i-h6-ths
+              - allwinner,sun50i-r329-ths
 
     then:
       properties:
@@ -86,8 +88,9 @@ allOf:
       properties:
         compatible:
           contains:
-            const: allwinner,sun8i-h3-ths
-
+            enum:
+            - allwinner,sun8i-h3-ths
+            - allwinner,sun8i-r329-ths
     then:
       properties:
         "#thermal-sensor-cells":

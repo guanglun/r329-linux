@@ -1,0 +1,183 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+// Copyright (c) 2021 Sipeed
+
+/dts-v1/;
+
+#include "sun50i-r329-maix-iia.dtsi"
+
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/leds/common.h>
+#include <dt-bindings/pwm/pwm.h>
+
+/ {
+	model = "Sipeed MaixSense";
+	compatible = "sipeed,maixsense", "sipeed,maix-iia",
+		     "allwinner,sun50i-r329";
+
+	aliases {
+		serial0 = &uart0;
+		serial1 = &r_uart;
+		mmc0 = &mmc0;
+		i2c1 = &i2c1;
+	};
+
+	chosen {
+		stdout-path = "serial0:115200n8";
+	};
+
+	backlight: backlight {
+		compatible = "pwm-backlight";
+		pwms = <&pwm 4 50000 PWM_POLARITY_INVERTED>;
+		brightness-levels = <0 16 18 20 22 24 26 29 32 35 38 42 46 51 56 62 68 75 83 91 100>;
+		default-brightness-level = <15>;
+	};
+
+	leds {
+		compatible = "pwm-leds";
+
+		led-1 {
+			color = <LED_COLOR_ID_RED>;
+	                function = LED_FUNCTION_INDICATOR;
+			function-enumerator = <1>;
+			pwms = <&pwm 0 50000 PWM_POLARITY_INVERTED>;
+			max-brightness = <255>;
+			linux,default-trigger = "heartbeat";
+		};
+
+		led-2 {
+			color = <LED_COLOR_ID_GREEN>;
+			function = LED_FUNCTION_INDICATOR;
+			function-enumerator = <2>;
+			pwms = <&pwm 1 50000 PWM_POLARITY_INVERTED>;
+			max-brightness = <255>;
+		};
+
+		led-3 {
+			color = <LED_COLOR_ID_BLUE>;
+			function = LED_FUNCTION_INDICATOR;
+			function-enumerator = <3>;
+			pwms = <&pwm 2 50000 PWM_POLARITY_INVERTED>;
+			max-brightness = <255>;
+		};
+	};
+};
+
+&codec {
+	status = "okay";
+	allwinner,audio-routing =
+		"Speaker", "SPKL",
+		"MIC1", "Mic",
+		"MIC2", "Mic",
+		"Mic", "MBIAS",
+		"Mic", "MBIAS";
+};
+
+&codec_analog {
+	status = "okay";
+};
+
+&ehci0 {
+	status = "okay";
+};
+
+&lradc {
+	status = "okay";
+
+	button-155 {
+		label = "Right";
+		linux,code = <KEY_RIGHT>;
+		channel = <0>;
+		voltage = <155013>;
+	};
+
+	button-310 {
+		label = "Left";
+		linux,code = <KEY_LEFT>;
+		channel = <0>;
+		voltage = <309828>;
+	};
+
+	button-463 {
+		label = "B";
+		linux,code = <KEY_B>;
+		channel = <0>;
+		voltage = <463317>;
+	};
+
+	button-599 {
+		label = "A";
+		linux,code = <KEY_A>;
+		channel = <0>;
+		voltage = <599420>;
+	};
+};
+
+&mmc0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&mmc0_pf_pins>;
+
+	vmmc-supply = <&reg_vcc3v3>;
+	bus-width = <4>;
+	cd-gpios = <&pio 5 6 GPIO_ACTIVE_LOW>; /* PF6 */
+	status = "okay";
+};
+
+&ohci0 {
+	status = "okay";
+};
+
+&pwm {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pwm0_pb0>, <&pwm1_pb1>, <&pwm2_pb2>, <&pwm4_ph6>;
+	status = "okay";
+};
+
+&spi1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&spi1_clk_ph1>, <&spi1_mosi_ph2>, <&spi1_miso_ph3>;
+
+	status = "okay";
+    cs-gpios = <&pio 7 0 GPIO_ACTIVE_HIGH>;
+	num-cs = <1>;
+	spidev@0 {
+		status = "okay";
+
+		compatible = "spidev";
+		/* spi default max clock 100Mhz */
+		spi-max-frequency = <100000000>;
+		reg = <0>;
+	};
+
+	// lcd: lcd@0 {
+	// 	compatible = "zsx,zsx154-b1206";
+	// 	reg = <0>;
+	// 	spi-max-frequency = <30000000>;
+	// 	dc-gpios = <&pio 7 4 GPIO_ACTIVE_HIGH>;
+	// 	reset-gpios = <&r_pio 2 21 GPIO_ACTIVE_HIGH>;
+	// 	backlight = <&backlight>;
+	// };
+};
+
+&uart0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&uart0_pb_pins>;
+	status = "okay";
+};
+
+&r_uart{
+	status = "okay";
+};
+
+&usb_otg {
+	dr_mode = "otg";
+	status = "okay";
+};
+
+&usbphy {
+	usb0_id_det-gpios = <&pio 1 3 GPIO_ACTIVE_HIGH>; /* PB3 */
+	status = "okay";
+};
+
+&i2c1 {
+	status="okay";
+};
