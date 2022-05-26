@@ -1069,8 +1069,7 @@ static const struct of_device_id sun4i_usb_phy_of_match[] = {
 	  .data = &sun50i_a64_cfg},
 	{ .compatible = "allwinner,sun50i-h6-usb-phy", .data = &sun50i_h6_cfg },
 	{ .compatible = "allwinner,sun50i-h616-usb-phy", .data = &sun50i_h616_cfg },
-	{ .compatible = "allwinner,sun50i-r329-usb-phy",
-	  .data = &sun50i_r329_cfg },
+	{ .compatible = "allwinner,sun50i-r329-usb-phy", .data = &sun50i_r329_cfg },
     { },
 };
 MODULE_DEVICE_TABLE(of, sun4i_usb_phy_of_match);

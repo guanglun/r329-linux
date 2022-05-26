@@ -107,7 +107,7 @@
 &pwm {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pwm2_pb2>, <&pwm3_pb3>, <&pwm7_pb7>, <&pwm8_pb8>;
-	status = "disable";
+	status = "okay";
 };
 
 // &pwm1 {
@@ -225,10 +225,10 @@
 
 &usb_otg {
 	dr_mode = "peripheral";//otg
-	status = "disable";
+	status = "okay";
 };
 
 &usbphy {
 	// usb0_id_det-gpios = <&pio 1 3 GPIO_ACTIVE_HIGH>; /* PB3 */
-	status = "disable";
+	status = "okay";
 };
