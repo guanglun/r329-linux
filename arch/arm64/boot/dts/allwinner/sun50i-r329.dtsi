@@ -154,13 +154,13 @@
 				function = "pwm";
 			};
 
-			pwm7_pb7: pwm7-pb7 {
-				pins = "PB7";
+			pwm6_pb6: pwm6-pb6 {
+				pins = "PB6";
 				function = "pwm";
 			};
 
-			pwm8_pb8: pwm8-pb8 {
-				pins = "PB8";
+			pwm7_pb7: pwm7-pb7 {
+				pins = "PB7";
 				function = "pwm";
 			};
 
@@ -230,30 +230,6 @@
 			#pwm-cells = <3>;
 			
 		};
-
-		// pwm1: pwm1@2000c00 {
-		// 	compatible = "allwinner,sun50i-r329-pwm1";
-		// 	pinctrl-names = "active", "sleep";
-		// 	reg_base = <0x02000c00>;
-		// };
-
-		// pwm2: pwm2@2000c00 {
-		// 	compatible = "allwinner,sun50i-r329-pwm2";
-		// 	pinctrl-names = "active", "sleep";
-		// 	reg_base = <0x02000c00>;
-		// };
-
-		// pwm7: pwm7@2000c00 {
-		// 	compatible = "allwinner,sun50i-r329-pwm7";
-		// 	pinctrl-names = "active", "sleep";
-		// 	reg_base = <0x02000c00>;
-		// };
-
-		// pwm8: pwm8@2000c00 {
-		// 	compatible = "allwinner,sun50i-r329-pwm8";
-		// 	pinctrl-names = "active", "sleep";
-		// 	reg_base = <0x02000c00>;
-		// };
 
 		ccu: clock@2001000 {
 			compatible = "allwinner,sun50i-r329-ccu";

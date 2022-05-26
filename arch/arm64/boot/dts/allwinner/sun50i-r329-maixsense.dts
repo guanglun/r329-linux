@@ -106,33 +106,9 @@
 
 &pwm {
 	pinctrl-names = "default";
-	pinctrl-0 = <&pwm2_pb2>, <&pwm3_pb3>, <&pwm7_pb7>, <&pwm8_pb8>;
+	pinctrl-0 = <&pwm2_pb2>, <&pwm3_pb3>, <&pwm6_pb6>, <&pwm7_pb7>;
 	status = "okay";
 };
-
-// &pwm1 {
-// 	pinctrl-names = "default";
-// 	pinctrl-0 = <&pwm2_pb2>;
-// 	status = "okay";
-// };
-
-// &pwm2 {
-// 	pinctrl-names = "default";
-// 	pinctrl-0 = <&pwm3_pb3>;
-// 	status = "okay";
-// };
-
-// &pwm7 {
-// 	pinctrl-names = "default";
-// 	pinctrl-0 = <&pwm7_pb7>;
-// 	status = "okay";
-// };
-
-// &pwm8 {
-// 	pinctrl-names = "default";
-// 	pinctrl-0 = <&pwm8_pb8>;
-// 	status = "okay";
-// };
 
 &i2c0 {
 	status = "okay";
