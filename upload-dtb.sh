@@ -3,7 +3,7 @@
 KERNEL_PATH=.
 
 #scp $KERNEL_PATH/arch/arm64/boot/Image root@r329:/boot/Image
-scp $KERNEL_PATH/arch/arm64/boot/dts/allwinner/sun50i-r329-maixsense.dtb root@$R329:/boot/dtb-5.14.0-rc4-sun50iw11/allwinner/sun50i-r329-maixsense.dtb
+scp $KERNEL_PATH/arch/arm64/boot/dts/allwinner/sun50i-r329-maixsense.dtb root@$R329:/boot/dtb-5.10.109-rt65-sun50iw11/allwinner/sun50i-r329-maixsense.dtb
 
 	# cs-gpios = <&pio 7 4 GPIO_ACTIVE_HIGH>;
 	# status = "okay";
