@@ -17,23 +17,18 @@
 		compatible = "operating-points-v2";
 		opp-shared;
 
-		// opp-504000000 {
-		// 	opp-hz = /bits/ 64 <504000000>;
-		// 	opp-microvolt = <1040000>;
-		// 	clock-latency-ns = <244144>; /* 8 32k periods */
-		// };
 
-		// opp-648000000 {
-		// 	opp-hz = /bits/ 64 <648000000>;
-		// 	opp-microvolt = <1040000>;
-		// 	clock-latency-ns = <244144>; /* 8 32k periods */
-		// };
+		opp-648000000 {
+			opp-hz = /bits/ 64 <648000000>;
+			opp-microvolt = <1040000>;
+			clock-latency-ns = <244144>; /* 8 32k periods */
+		};
 
-		// opp-816000000 {
-		// 	opp-hz = /bits/ 64 <816000000>;
-		// 	opp-microvolt = <1100000>;
-		// 	clock-latency-ns = <244144>; /* 8 32k periods */
-		// };
+		opp-816000000 {
+			opp-hz = /bits/ 64 <816000000>;
+			opp-microvolt = <1100000>;
+			clock-latency-ns = <244144>; /* 8 32k periods */
+		};
 
 		opp-1008000000 {
 			opp-hz = /bits/ 64 <1008000000>;
@@ -41,11 +36,11 @@
 			clock-latency-ns = <244144>; /* 8 32k periods */
 		};
 
-		// opp-1512000000 {
-		// 	opp-hz = /bits/ 64 <1512000000>;
-		// 	opp-microvolt = <1300000>;
-		// 	clock-latency-ns = <244144>; /* 8 32k periods */
-		// };
+		opp-1512000000 {
+			opp-hz = /bits/ 64 <1512000000>;
+			opp-microvolt = <1300000>;
+			clock-latency-ns = <244144>; /* 8 32k periods */
+		};
 	};
 
 	cpus {
