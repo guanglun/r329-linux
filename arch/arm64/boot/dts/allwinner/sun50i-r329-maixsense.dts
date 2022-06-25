@@ -149,7 +149,7 @@
 		reg = <0>;
 		// spi-cpol;
 		// spi-cpha;
-		rgb;
+		bgr;
 		rotate = <90>;
 		fps = <30>;
 		buswidth = <8>;
