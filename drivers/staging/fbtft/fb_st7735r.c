@@ -86,12 +86,22 @@ static const s16 default_init_sequence[] = {
 static void set_addr_win(struct fbtft_par *par, int xs, int ys, int xe, int ye)
 {
 	write_reg(par, MIPI_DCS_SET_COLUMN_ADDRESS,
-		  xs >> 8, xs & 0xFF, xe >> 8, xe & 0xFF);
+	 //(xs+24) >> 8, (xs+24) & 0xFF, (xe+24) >> 8, (xe+24) & 0xFF);
+		  xs >> 8, (xs+1) & 0xFF, xe >> 8, (xe+1) & 0xFF);
 
 	write_reg(par, MIPI_DCS_SET_PAGE_ADDRESS,
-		  ys >> 8, ys & 0xFF, ye >> 8, ye & 0xFF);
+			(ys+25) >> 8, (ys+26) & 0xFF, (ye+25) >> 8, (ye+26) & 0xFF);
+		  //ys >> 8, ys & 0xFF, ye >> 8, ye & 0xFF);
 
 	write_reg(par, MIPI_DCS_WRITE_MEMORY_START);
+
+	// write_reg(par, MIPI_DCS_SET_COLUMN_ADDRESS,
+	// 	  xs >> 8, xs & 0xFF, xe >> 8, xe & 0xFF);
+
+	// write_reg(par, MIPI_DCS_SET_PAGE_ADDRESS,
+	// 	  ys >> 8, ys & 0xFF, ye >> 8, ye & 0xFF);
+
+	// write_reg(par, MIPI_DCS_WRITE_MEMORY_START);
 }
 
 #define MY BIT(7)
@@ -161,7 +171,7 @@ static int set_gamma(struct fbtft_par *par, u32 *curves)
 
 static struct fbtft_display display = {
 	.regwidth = 8,
-	.width = 128,
+	.width = 80,
 	.height = 160,
 	.init_sequence = default_init_sequence,
 	.gamma_num = 2,
