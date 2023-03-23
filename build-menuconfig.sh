@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CROSS_COMPILE_PATH=/home/guanglun/workspace/r329/armbian-build/cache/toolchain/gcc-arm-8.3-2019.03-x86_64-aarch64-linux-gnu/bin
+CROSS_COMPILE_PATH=/home/guanglun/workspace/fourier-r329-g0/armbian-build/cache/toolchain/gcc-arm-8.3-2019.03-x86_64-aarch64-linux-gnu/bin
 
 #cp config/kernel/linux-sun50iw11-edge.config $KERNEL_PATH/.config
 #cd $KERNEL_PATH && make ARCH=arm64 CROSS_COMPILE=$CROSS_COMPILE_PATH/aarch64-linux-gnu- clean

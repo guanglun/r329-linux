@@ -21,8 +21,8 @@
         serial3 = &uart3;
         i2c0 = &i2c0;
 		i2c1 = &i2c1;
-		spi0 = &spi0;
-		spi1 = &spi1;
+		// spi0 = &spi0;
+		// spi1 = &spi1;
 		mmc0 = &mmc0;
 		// pwm1 = &pwm1;
 		// pwm2 = &pwm2;
@@ -122,7 +122,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&spi0_clk_pc4>, <&spi0_mosi_pc3>, <&spi0_miso_pc1>;
 	//<&spi0_cs_pc0>, 
-	status = "okay";
+	status = "disable";
 
 	//ICM_20602 ICM_20689_CS
 	cs-gpios = <&pio 2 0 GPIO_ACTIVE_HIGH>,<&r_pio 0 2 GPIO_ACTIVE_HIGH>;
@@ -145,32 +145,18 @@
 &spi1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&spi1_clk_ph1>, <&spi1_mosi_ph2>, <&spi1_miso_ph3>;
-	//<&spi1_cs_ph0>, 
+
 	status = "okay";
-	//MS5611 PMW3901
-	cs-gpios = <&pio 7 0 GPIO_ACTIVE_HIGH>,<&r_pio 0 3 GPIO_ACTIVE_HIGH>;
+    cs-gpios = <&pio 7 0 GPIO_ACTIVE_HIGH>;
+	num-cs = <1>;
 	spidev@0 {
+		status = "okay";
+
 		compatible = "spidev";
 		/* spi default max clock 100Mhz */
 		spi-max-frequency = <100000000>;
 		reg = <0>;
 	};
-
-	spidev@1 {
-		compatible = "spidev";
-		/* spi default max clock 100Mhz */
-		spi-max-frequency = <100000000>;
-		reg = <1>;
-	};
-	
-	// lcd: lcd@0 {
-	// 	compatible = "zsx,zsx154-b1206";
-	// 	reg = <0>;
-	// 	spi-max-frequency = <30000000>;
-	// 	dc-gpios = <&pio 7 4 GPIO_ACTIVE_HIGH>;
-	// 	reset-gpios = <&r_pio 2 21 GPIO_ACTIVE_HIGH>;
-	// 	backlight = <&backlight>;
-	// };
 };
 //ABCDEFGHIJ K  L
 //0123456789 10 11
