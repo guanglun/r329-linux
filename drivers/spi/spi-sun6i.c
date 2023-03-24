@@ -7,6 +7,7 @@
  * Maxime Ripard <maxime.ripard@free-electrons.com>
  */
 
+#include <linux/gpio.h>
 #include <linux/bitfield.h>
 #include <linux/clk.h>
 #include <linux/delay.h>
@@ -86,15 +87,45 @@
 #define SUN6I_TXDATA_REG 0x200
 #define SUN6I_RXDATA_REG 0x300
 
-#define PB_CFG0_REG 0x02000400 + 1 * 0x24 //PB配置寄存器 A:0 B:1 C:2 ....
-#define PB_DATA_REG 0x02000400 + 1 * 0x34 //PB数据寄存器 A:0 B:1 C:2 ....
-#define PIN_N 7
-#define N (PIN_N % 8 * 4)
-volatile unsigned int *PB_DAT;
-volatile unsigned int *PB_CFG;
+#define PH_CFG0_REG (0x02000400 + 7 * 0x24) 		//PH配置寄存器 A:0 B:1 C:2 ....
+#define PH_DATA_REG (0x02000400 + 7 * 0x24 + 0x10)	//PH数据寄存器 A:0 B:1 C:2 ....
 
-#define TEST0_0() *PB_DAT &= ~(1 << PIN_N)
-#define TEST0_1() *PB_DAT |= (1 << PIN_N)
+#define PIN_CFG(i) ((i) % 8 * 4)
+
+volatile unsigned int *PH_DAT;
+volatile unsigned int *PH_CFG;
+
+#define CS_PIN_N 0   //PH0
+#define RST_PIN_N 4  //PH4
+
+#define CS_LO() *PH_DAT &= ~(1 << CS_PIN_N)
+#define CS_HI() *PH_DAT |= (1 << CS_PIN_N)
+#define RST_LO() *PH_DAT &= ~(1 << RST_PIN_N)
+#define RST_HI() *PH_DAT |= (1 << RST_PIN_N)
+
+#define SPI_BUFF_SIZE 16
+
+struct fodriver_rx_t{
+    uint16_t adc[5];
+    int16_t pos;
+    uint8_t tmp[2];
+    uint8_t flag[2];
+}__attribute__ ((packed));
+
+struct fodriver_tx_t
+{
+    uint16_t pwm[3];
+    uint16_t tmp[5];
+}__attribute__ ((packed));
+
+typedef struct
+{
+    struct fodriver_tx_t tx;
+    struct fodriver_rx_t rx;
+    
+} fodriver_t;
+
+fodriver_t fd;
 
 struct sun6i_spi_cfg {
 	unsigned long fifo_depth;
@@ -424,6 +455,23 @@ static void init_spi_fo(struct spi_transfer *tfr,bool is_dma)
     }
 }
 
+static void init_spi_fourier(void)
+{
+    //SREG(SUN6I_INT_CTL_REG) = SUN6I_INT_CTL_TC; //isr
+    SREG(SUN6I_INT_CTL_REG) = 0;
+    SREG(SUN6I_INT_STA_REG) = 0xFFFFFFFF;
+
+    SREG(SUN6I_FIFO_CTL_REG) = (SUN6I_FIFO_CTL_RF_RST | SUN6I_FIFO_CTL_TF_RST);
+
+    SREG(SUN6I_FIFO_CTL_REG) = 0x01200120;
+
+    SREG(SUN6I_GBL_CTL_REG) = (SUN6I_GBL_CTL_BUS_ENABLE | SUN6I_GBL_CTL_MASTER);
+
+    //SREG(SUN6I_GBL_CTL_REG) = (SUN6I_GBL_CTL_BUS_ENABLE | SUN6I_GBL_CTL_MASTER | SUN6I_GBL_CTL_TP);
+    SREG(SUN6I_TFR_CTL_REG) = (SUN6I_TFR_CTL_SPOL | SUN6I_TFR_CTL_CS_MANUAL | SUN6I_TFR_CTL_CS_LEVEL);
+
+}
+
 static int sun6i_spi_transfer_one_dma(struct spi_master *master,
 				  struct spi_device *spi,
 				  struct spi_transfer *tfr)
@@ -440,8 +488,6 @@ static int sun6i_spi_transfer_one_dma(struct spi_master *master,
         first = false;
     }
 
-	TEST0_0();
-
 	SREG(SUN6I_BURST_CNT_REG) = 16;//16*1024;
 	SREG(SUN6I_XMIT_CNT_REG) = 16;//16*1024;
 	SREG(SUN6I_BURST_CTL_CNT_REG) = 16;//16*1024;
@@ -457,8 +503,6 @@ static int sun6i_spi_transfer_one_dma(struct spi_master *master,
 	}
 
     SREG(SUN6I_INT_CTL_REG) = 0;
-
-    TEST0_1();
 
 	return ret;
 }
@@ -478,8 +522,6 @@ static int sun6i_spi_transfer_one(struct spi_master *master,
 		first = false;
 		return 0;
 	}
-
-	TEST0_1();
 
 	SREG(SUN6I_BURST_CNT_REG) = 16;
 	SREG(SUN6I_XMIT_CNT_REG) = 16;
@@ -505,9 +547,58 @@ static int sun6i_spi_transfer_one(struct spi_master *master,
 		}
 	}
 	
-	TEST0_0();
 	return 0;
 }
+
+static void fospi_reboot(void)
+{
+    msleep(40);
+    RST_LO();
+    msleep(40);
+    RST_HI();
+    msleep(100);
+}
+
+void fospi_trans(void)
+{
+    int timeout = 100000;
+
+    CS_LO();
+
+	SREG(SUN6I_BURST_CNT_REG) = 16;
+	SREG(SUN6I_XMIT_CNT_REG) = 16;
+	SREG(SUN6I_BURST_CTL_CNT_REG) = 16;
+
+	SREG(SUN6I_TXDATA_REG) = *(((uint32_t *)&fd.tx) + 0);
+	SREG(SUN6I_TXDATA_REG) = *(((uint32_t *)&fd.tx) + 1);
+	SREG(SUN6I_TXDATA_REG) = *(((uint32_t *)&fd.tx) + 2);
+	SREG(SUN6I_TXDATA_REG) = *(((uint32_t *)&fd.tx) + 3);
+
+    // SREG(SUN6I_TXDATA_REG) = tx[0];
+    // SREG(SUN6I_TXDATA_REG) = tx[1];
+    // SREG(SUN6I_TXDATA_REG) = tx[2];
+    // SREG(SUN6I_TXDATA_REG) = tx[3];
+
+    SREG(SUN6I_TFR_CTL_REG) |= SUN6I_TFR_CTL_XCH;
+	//SREG(SUN6I_TFR_CTL_REG) = SUN6I_TFR_CTL_XCH;
+
+	while (timeout--) {
+		/* Transfer complete */
+		if (SREG(SUN6I_INT_STA_REG) & SUN6I_INT_CTL_TC) {
+			SREG(SUN6I_INT_STA_REG) = SUN6I_INT_CTL_TC;
+			*(((uint32_t *)&fd.rx)+0) = SREG(SUN6I_RXDATA_REG);
+			*(((uint32_t *)&fd.rx)+1) = SREG(SUN6I_RXDATA_REG);
+			*(((uint32_t *)&fd.rx)+2) = SREG(SUN6I_RXDATA_REG);
+			*(((uint32_t *)&fd.rx)+3) = SREG(SUN6I_RXDATA_REG);
+        	// rx[0] = SREG(SUN6I_RXDATA_REG);
+			// rx[1] = SREG(SUN6I_RXDATA_REG);
+			// rx[2] = SREG(SUN6I_RXDATA_REG);
+			// rx[3] = SREG(SUN6I_RXDATA_REG);
+			break;
+		}
+	}
+    CS_HI();
+} 
 
 static irqreturn_t sun6i_spi_handler(int irq, void *dev_id)
 {
@@ -579,13 +670,29 @@ static bool sun6i_spi_can_dma(struct spi_master *master, struct spi_device *spi,
 	return true; //xfer->len > sspi->cfg->fifo_depth;
 }
 
+static irqreturn_t g0_irq_handler(int irq, void *dev)
+{
+	// int ret = gpio_get_value(35);
+	// printk(KERN_INFO"key ret %d\n", ret);
+	// static int irq_cnt = 0;
+	fospi_trans();
+
+	// if(irq_cnt%1000 == 0)
+	// {
+	// 	printk(KERN_INFO"%d\t%d\t%d\t%d\t%d\n", fd.rx.adc[0], fd.rx.adc[1], fd.rx.adc[2], fd.rx.adc[3], fd.rx.adc[4]);
+	// 	//printk(KERN_INFO"%d\n", fd.rx.adc[0]);
+	// }
+	// irq_cnt++;
+	return IRQ_HANDLED;
+}
+
 static int sun6i_spi_probe(struct platform_device *pdev)
 {
 	struct spi_master *master;
 	struct sun6i_spi *sspi;
 	struct resource *mem;
-	int ret = 0, irq;
-
+	int ret = 0, irq,i;
+	int sync_cnt = 0;
 	unsigned long val = 0;
 
 	pool = dmam_pool_create(dev_name(&pdev->dev), &pdev->dev,
@@ -611,17 +718,17 @@ static int sun6i_spi_probe(struct platform_device *pdev)
 	// 	printk("Failed to alloc lli1 memory\n");
 	// }
 
+	PH_DAT = (volatile unsigned int *)ioremap(PH_DATA_REG, 1);
+	PH_CFG = (volatile unsigned int *)ioremap(PH_CFG0_REG, 1);
 
-	PB_DAT = (volatile unsigned int *)ioremap(PB_DATA_REG, 1);
-	PB_CFG = (volatile unsigned int *)ioremap(PB_CFG0_REG, 1);
+	*PH_CFG &= ~(7 << PIN_CFG(CS_PIN_N)); 
+	*PH_CFG |=  (1 << PIN_CFG(CS_PIN_N));
 
-	*PB_CFG &= ~(7 << N); //7=111 取反000 20：22设置000 默认是0x7=111 失能
-	*PB_CFG |= (1 << N); //设置输出 20：22设置001
+	*PH_CFG &= ~(7 << PIN_CFG(RST_PIN_N)); 
+	*PH_CFG |=  (1 << PIN_CFG(RST_PIN_N));
 
-	TEST0_0();
-
-SPI_BASE_MAP = (volatile unsigned int *)ioremap(SPI_BASE, SPI_SIZE);
-DMA_BASE_MAP = (volatile unsigned int *)ioremap(DMA_BASE, DMA_SIZE);
+	SPI_BASE_MAP = (volatile unsigned int *)ioremap(SPI_BASE, SPI_SIZE);
+	DMA_BASE_MAP = (volatile unsigned int *)ioremap(DMA_BASE, DMA_SIZE);
 
 	master = spi_alloc_master(&pdev->dev, sizeof(struct sun6i_spi));
 	if (!master) {
@@ -650,6 +757,15 @@ DMA_BASE_MAP = (volatile unsigned int *)ioremap(DMA_BASE, DMA_SIZE);
 	// 	dev_err(&pdev->dev, "Cannot request IRQ\n");
 	// 	goto err_free_master;
 	// }
+
+
+
+	// for(i=0;i<9;i++)
+	// {
+	// 	printk(KERN_INFO"PB%d: %d\n",i,gpio_to_irq(32+i));
+	// }
+
+
 
 	sspi->master = master;
 	sspi->cfg = of_device_get_match_data(&pdev->dev);
@@ -738,7 +854,51 @@ DMA_BASE_MAP = (volatile unsigned int *)ioremap(DMA_BASE, DMA_SIZE);
 		goto err_pm_disable;
 	}
 
-    //init_spi_fo(NULL,false);
+	init_spi_fourier();
+	///home/guanglun/workspace/fourier-r329-g0/r329-linux/drivers/pinctrl/sunxi/pinctrl-sunxi.h
+	//PB0 NUMBER:32
+	//PB3 NUMBER:35
+
+	CS_HI();
+    RST_HI();
+
+    fospi_reboot();
+    fospi_trans();
+
+    //sync 0x0E,0x0F
+    while(fd.rx.flag[0] != 0x0E || fd.rx.flag[1] != 0x0F)
+    {
+        printk(KERN_INFO"g0 spi sync try %d fail. ",++sync_cnt);
+        // for(i=0;i<SPI_BUFF_SIZE;i++)
+        // {
+        //     printk(KERN_INFO"%02X ",*(((uint8_t *)&(fd.rx))+i));
+        // }
+        // printk(KERN_INFO"\n");
+
+        fospi_reboot();
+        fospi_trans();
+    }
+
+    printk(KERN_INFO"fospi init success.\n");
+
+   	if (gpio_request(35, "g0-irq" )) 
+   	{
+      	printk(KERN_INFO"GPIO request failure: %s\n", "g0-irq" );
+   	}
+	printk(KERN_INFO"GPIO request success: %s\n", "g0-irq" );
+
+	ret = gpio_direction_input(35);
+	if (ret) {
+		printk(KERN_INFO"gpio_direction_input %d fail\n",ret);
+	}
+	printk(KERN_INFO"gpio_direction_input init success\n");
+
+	irq = gpio_to_irq(35);
+	if(request_irq(irq,g0_irq_handler,IRQF_TRIGGER_FALLING,"g0-irq",NULL))
+	{
+		printk(KERN_INFO"irq %d fail\n",irq);
+	}
+	printk(KERN_INFO"irq %d init success\n",irq);
 
 	return 0;
 
