@@ -1389,9 +1389,16 @@ static int sunxi_pinctrl_setup_debounce(struct sunxi_pinctrl *pctl,
 			src = 0;
 		}
 
-		writel(src | div << 4,
+		//printk(KERN_INFO"debounce div: %d\n", div );
+
+		// writel(src | div << 4,
+		//        pctl->membase +
+		//        sunxi_irq_debounce_reg_from_bank(pctl->desc, i));
+
+		writel(1 | 0 << 4,
 		       pctl->membase +
 		       sunxi_irq_debounce_reg_from_bank(pctl->desc, i));
+
 	}
 
 	return 0;
